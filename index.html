@@ -1,0 +1,728 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>LuckyWinner — Testnet</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Syne:wght@400;700;800&display=swap" rel="stylesheet"/>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/ethers/6.7.0/ethers.umd.min.js"></script>
+<style>
+  /* ── CONFIG BANNER ── */
+  :root {
+    --bg: #0a0a0a;
+    --surface: #111111;
+    --border: #222222;
+    --accent: #e8ff47;
+    --accent2: #ff4757;
+    --text: #f0f0f0;
+    --muted: #555;
+    --green: #47ffa0;
+    --mono: 'Space Mono', monospace;
+    --sans: 'Syne', sans-serif;
+  }
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--sans);
+    min-height: 100vh;
+    padding: 24px;
+  }
+  a { color: var(--accent); }
+
+  /* ── CONFIG BANNER ── */
+  #config-banner {
+    background: #1a1500;
+    border: 1px solid #554400;
+    border-radius: 8px;
+    padding: 14px 18px;
+    margin-bottom: 20px;
+    font-family: var(--mono);
+    font-size: 12px;
+    color: #ffcc44;
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+  }
+  #config-banner span { opacity: .5 }
+  #config-banner input {
+    background: transparent;
+    border: none;
+    border-bottom: 1px dashed #554400;
+    color: #ffcc44;
+    font-family: var(--mono);
+    font-size: 12px;
+    width: 380px;
+    outline: none;
+    padding: 2px 4px;
+  }
+
+  /* ── HEADER ── */
+  header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 32px;
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+  .logo {
+    font-family: var(--sans);
+    font-weight: 800;
+    font-size: 26px;
+    letter-spacing: -1px;
+  }
+  .logo span { color: var(--accent); }
+  .badge {
+    font-family: var(--mono);
+    font-size: 10px;
+    background: #1a1a00;
+    border: 1px solid #554400;
+    color: #ffcc44;
+    padding: 3px 8px;
+    border-radius: 4px;
+    vertical-align: middle;
+    margin-left: 8px;
+  }
+  #wallet-btn {
+    font-family: var(--mono);
+    font-size: 12px;
+    background: transparent;
+    border: 1px solid var(--border);
+    color: var(--text);
+    padding: 8px 16px;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all .15s;
+  }
+  #wallet-btn:hover { border-color: var(--accent); color: var(--accent); }
+  #wallet-btn.connected { border-color: var(--green); color: var(--green); }
+
+  /* ── TABS ── */
+  .tabs {
+    display: flex;
+    gap: 4px;
+    margin-bottom: 24px;
+    border-bottom: 1px solid var(--border);
+    padding-bottom: 0;
+  }
+  .tab {
+    font-family: var(--mono);
+    font-size: 12px;
+    padding: 8px 16px;
+    cursor: pointer;
+    color: var(--muted);
+    border-bottom: 2px solid transparent;
+    margin-bottom: -1px;
+    transition: all .15s;
+    background: none;
+    border-top: none;
+    border-left: none;
+    border-right: none;
+  }
+  .tab:hover { color: var(--text); }
+  .tab.active { color: var(--accent); border-bottom-color: var(--accent); }
+
+  .panel { display: none; }
+  .panel.active { display: block; }
+
+  /* ── CARDS ── */
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 20px;
+    margin-bottom: 16px;
+  }
+  .card-title {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    margin-bottom: 16px;
+  }
+
+  /* ── FORM ELEMENTS ── */
+  label {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--muted);
+    display: block;
+    margin-bottom: 6px;
+    margin-top: 14px;
+  }
+  label:first-of-type { margin-top: 0; }
+  input[type=text], input[type=number], select {
+    width: 100%;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    color: var(--text);
+    font-family: var(--mono);
+    font-size: 13px;
+    padding: 9px 12px;
+    border-radius: 6px;
+    outline: none;
+    transition: border-color .15s;
+  }
+  input:focus, select:focus { border-color: var(--accent); }
+  select option { background: #111; }
+
+  .btn {
+    display: inline-block;
+    margin-top: 16px;
+    padding: 10px 22px;
+    font-family: var(--mono);
+    font-size: 12px;
+    border-radius: 6px;
+    cursor: pointer;
+    border: none;
+    transition: all .15s;
+    font-weight: 700;
+  }
+  .btn-primary {
+    background: var(--accent);
+    color: #000;
+  }
+  .btn-primary:hover { background: #d4eb00; }
+  .btn-danger {
+    background: transparent;
+    border: 1px solid var(--accent2);
+    color: var(--accent2);
+  }
+  .btn-danger:hover { background: var(--accent2); color: #fff; }
+  .btn-ghost {
+    background: transparent;
+    border: 1px solid var(--border);
+    color: var(--text);
+  }
+  .btn-ghost:hover { border-color: var(--accent); color: var(--accent); }
+  .btn:disabled { opacity: .35; cursor: not-allowed; }
+
+  /* ── ROUND LIST ── */
+  .round-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 12px;
+  }
+  .round-card {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 16px;
+    transition: border-color .15s;
+  }
+  .round-card:hover { border-color: #333; }
+  .round-id {
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--muted);
+    margin-bottom: 8px;
+  }
+  .round-state {
+    display: inline-block;
+    font-family: var(--mono);
+    font-size: 10px;
+    padding: 2px 8px;
+    border-radius: 20px;
+    margin-bottom: 12px;
+  }
+  .state-OPEN       { background: #0a2a0a; color: var(--green); border: 1px solid #1a5a1a; }
+  .state-READY      { background: #0a1a2a; color: #47aaff; border: 1px solid #1a4a7a; }
+  .state-CALCULATING{ background: #1a1a0a; color: #ffcc44; border: 1px solid #4a4a0a; }
+  .state-FROZEN     { background: #0a1a2a; color: #88ccff; border: 1px solid #1a4a6a; }
+  .state-COMPLETED  { background: #1a0a1a; color: #cc88ff; border: 1px solid #4a1a4a; }
+
+  .round-stat {
+    display: flex;
+    justify-content: space-between;
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--muted);
+    margin-bottom: 4px;
+  }
+  .round-stat span:last-child { color: var(--text); }
+  .progress-bar {
+    height: 3px;
+    background: var(--border);
+    border-radius: 2px;
+    margin: 10px 0;
+    overflow: hidden;
+  }
+  .progress-fill {
+    height: 100%;
+    background: var(--accent);
+    border-radius: 2px;
+    transition: width .3s;
+  }
+  .round-actions { margin-top: 12px; display: flex; gap: 8px; flex-wrap: wrap; }
+  .round-actions .btn { margin-top: 0; padding: 6px 14px; font-size: 11px; }
+
+  /* ── LOG ── */
+  #log {
+    font-family: var(--mono);
+    font-size: 11px;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 12px;
+    max-height: 220px;
+    overflow-y: auto;
+    margin-top: 16px;
+  }
+  .log-line { padding: 3px 0; border-bottom: 1px solid #1a1a1a; }
+  .log-line:last-child { border-bottom: none; }
+  .log-ok   { color: var(--green); }
+  .log-err  { color: var(--accent2); }
+  .log-info { color: var(--muted); }
+  .log-tx   { color: #ffcc44; }
+
+  /* ── MISC ── */
+  .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .hint { font-family: var(--mono); font-size: 10px; color: var(--muted); margin-top: 6px; }
+  .empty { text-align: center; font-family: var(--mono); font-size: 12px; color: var(--muted); padding: 40px; }
+  hr { border: none; border-top: 1px solid var(--border); margin: 20px 0; }
+</style>
+</head>
+<body>
+
+<!-- CONFIG BANNER -->
+<div id="config-banner">
+  <div>
+    <div style="margin-bottom:8px">⚠ PASTE CONTRACT ADDRESSES BEFORE USING</div>
+    <div style="margin-bottom:6px">
+      <span>LUCKYWINNER:</span>
+      <input id="cfg-contract" type="text" placeholder="0x..." value=""/>
+    </div>
+    <div>
+      <span>USDT (mock):  </span>
+      <input id="cfg-usdt" type="text" placeholder="0x..." value=""/>
+    </div>
+  </div>
+</div>
+
+<header>
+  <div class="logo">Lucky<span>Winner</span> <span class="badge">SEPOLIA</span></div>
+  <button id="wallet-btn" onclick="connectWallet()">Connect Wallet</button>
+</header>
+
+<div class="tabs">
+  <button class="tab active" onclick="showTab('rounds')">Active Rounds</button>
+  <button class="tab" onclick="showTab('enter')">Enter Round</button>
+  <button class="tab" onclick="showTab('admin')">Admin</button>
+</div>
+
+<!-- ROUNDS PANEL -->
+<div id="panel-rounds" class="panel active">
+  <div class="card">
+    <div class="card-title">Live Rounds</div>
+    <button class="btn btn-ghost" style="margin-top:0;margin-bottom:16px" onclick="loadRounds()">↻ Refresh</button>
+    <div id="rounds-container"><div class="empty">Connect wallet and click Refresh</div></div>
+  </div>
+</div>
+
+<!-- ENTER PANEL -->
+<div id="panel-enter" class="panel">
+  <div class="card">
+    <div class="card-title">Buy a Ticket</div>
+    <label>Round ID</label>
+    <input type="number" id="enter-roundId" min="0" placeholder="0"/>
+    <p class="hint">You'll first approve USDT, then enter the round.</p>
+    <button class="btn btn-primary" onclick="doEnter()">Approve & Enter</button>
+  </div>
+  <div class="card">
+    <div class="card-title">Self-Refund (FROZEN rounds)</div>
+    <label>Round ID</label>
+    <input type="number" id="refund-roundId" min="0" placeholder="0"/>
+    <button class="btn btn-ghost" onclick="doSelfRefund()">Claim Refund</button>
+  </div>
+</div>
+
+<!-- ADMIN PANEL -->
+<div id="panel-admin" class="panel">
+  <div class="two-col">
+    <div class="card">
+      <div class="card-title">Create Round</div>
+      <label>Ticket Price (USDT, no decimals)</label>
+      <input type="number" id="cr-price" placeholder="10" min="1"/>
+      <label>Max Players</label>
+      <input type="number" id="cr-max" placeholder="5" min="2"/>
+      <label>Protocol Fee %</label>
+      <input type="number" id="cr-fee" placeholder="5" min="0" max="20"/>
+      <button class="btn btn-primary" onclick="doCreateRound()">Create</button>
+    </div>
+    <div class="card">
+      <div class="card-title">Draw / Freeze / Manual</div>
+      <label>Round ID</label>
+      <input type="number" id="adm-roundId" placeholder="0" min="0"/>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:12px">
+        <button class="btn btn-ghost" onclick="doDrawWinner()">Draw (VRF)</button>
+        <button class="btn btn-danger" onclick="doFreeze()">Freeze</button>
+      </div>
+      <hr/>
+      <label>Manual Winner Index (FROZEN only)</label>
+      <input type="number" id="adm-winnerIdx" placeholder="0" min="0"/>
+      <button class="btn btn-ghost" onclick="doManualDraw()">Manual Pick</button>
+    </div>
+  </div>
+  <div class="two-col">
+    <div class="card">
+      <div class="card-title">Refund (FROZEN)</div>
+      <label>Round ID</label>
+      <input type="number" id="adm-refund-roundId" placeholder="0" min="0"/>
+      <label>Player Address (blank = refund all)</label>
+      <input type="text" id="adm-refund-player" placeholder="0x... or leave blank"/>
+      <button class="btn btn-danger" onclick="doAdminRefund()">Refund</button>
+    </div>
+    <div class="card">
+      <div class="card-title">Protocol Fees</div>
+      <p class="hint" style="margin-top:0">Accumulated fees ready to withdraw.</p>
+      <button class="btn btn-ghost" onclick="loadFees()" style="margin-top:12px">Check Balance</button>
+      <div id="fees-display" style="font-family:var(--mono);font-size:20px;margin-top:12px;color:var(--accent)">—</div>
+      <button class="btn btn-primary" onclick="doWithdrawFees()">Withdraw</button>
+    </div>
+  </div>
+</div>
+
+<!-- TX LOG -->
+<div id="log"><div class="log-line log-info">// tx log</div></div>
+
+<script>
+// ═══════════════════════════════════════
+//  CONFIG  — filled from banner inputs
+// ═══════════════════════════════════════
+function CONTRACT_ADDR() { return document.getElementById('cfg-contract').value.trim(); }
+function USDT_ADDR()     { return document.getElementById('cfg-usdt').value.trim(); }
+
+const SEPOLIA_CHAIN_ID = '0xaa36a7'; // 11155111
+
+// Minimal ABIs — only what the UI needs
+const RAFFLE_ABI = [
+  "function createRound(uint256 ticketPrice, uint256 maxPlayers, uint256 protocolFeePercentage) external returns (uint256)",
+  "function enter(uint256 roundId) external",
+  "function drawWinner(uint256 roundId) external returns (uint256)",
+  "function freezeRound(uint256 roundId) external",
+  "function manualDrawWinner(uint256 roundId, uint256 winnerIndex) external",
+  "function refundPlayer(uint256 roundId, address player) external",
+  "function refundAll(uint256 roundId) external",
+  "function selfRefund(uint256 roundId) external",
+  "function withdrawFees() external",
+  "function unclaimedFees() view returns (uint256)",
+  "function getActiveRounds() view returns (uint256[])",
+  "function getRound(uint256 roundId) view returns (tuple(uint256 roundId, uint8 state, address[] players, uint256 ticketPrice, uint256 maxPlayers, uint256 protocolFeePercentage, uint256 totalPool, uint256 vrfRequestId, bool completed, address winner, uint256 createdAt, uint256 completedAt))",
+  "function getTicketCount(uint256 roundId, address player) view returns (uint256)"
+];
+
+const USDT_ABI = [
+  "function approve(address spender, uint256 amount) external returns (bool)",
+  "function allowance(address owner, address spender) view returns (uint256)",
+  "function decimals() view returns (uint8)"
+];
+
+const STATE_NAMES = ['OPEN','READY','CALCULATING','FROZEN','COMPLETED'];
+
+// ═══════════════════════════════════════
+//  STATE
+// ═══════════════════════════════════════
+let provider, signer, userAddress;
+let raffleContract, usdtContract, usdtDecimals = 6;
+
+// ═══════════════════════════════════════
+//  LOG
+// ═══════════════════════════════════════
+function log(msg, type='info') {
+  const el = document.getElementById('log');
+  const line = document.createElement('div');
+  line.className = `log-line log-${type}`;
+  line.textContent = `[${new Date().toLocaleTimeString()}] ${msg}`;
+  el.prepend(line);
+}
+function txLink(hash) {
+  return `<a href="https://sepolia.etherscan.io/tx/${hash}" target="_blank">${hash.slice(0,10)}...</a>`;
+}
+function logTx(hash) {
+  const el = document.getElementById('log');
+  const line = document.createElement('div');
+  line.className = 'log-line log-tx';
+  line.innerHTML = `[${new Date().toLocaleTimeString()}] tx: ${txLink(hash)}`;
+  el.prepend(line);
+}
+
+// ═══════════════════════════════════════
+//  WALLET
+// ═══════════════════════════════════════
+async function connectWallet() {
+  if (!window.ethereum) { log('MetaMask not found', 'err'); return; }
+  try {
+    await window.ethereum.request({ method: 'eth_requestAccounts' });
+
+    const chainId = await window.ethereum.request({ method: 'eth_chainId' });
+    if (chainId !== SEPOLIA_CHAIN_ID) {
+      log('Wrong network — please switch to Sepolia', 'err');
+      try {
+        await window.ethereum.request({
+          method: 'wallet_switchEthereumChain',
+          params: [{ chainId: SEPOLIA_CHAIN_ID }]
+        });
+      } catch(e) { return; }
+    }
+
+    provider = new ethers.BrowserProvider(window.ethereum);
+    signer   = await provider.getSigner();
+    userAddress = await signer.getAddress();
+
+    initContracts();
+
+    const btn = document.getElementById('wallet-btn');
+    btn.textContent = userAddress.slice(0,6) + '…' + userAddress.slice(-4);
+    btn.classList.add('connected');
+    log(`Connected: ${userAddress}`, 'ok');
+  } catch(e) {
+    log(e.message || 'Connect failed', 'err');
+  }
+}
+
+function initContracts() {
+  const ca = CONTRACT_ADDR();
+  const ua = USDT_ADDR();
+  if (ca && ethers.isAddress(ca))
+    raffleContract = new ethers.Contract(ca, RAFFLE_ABI, signer);
+  if (ua && ethers.isAddress(ua)) {
+    usdtContract = new ethers.Contract(ua, USDT_ABI, signer);
+    usdtContract.decimals().then(d => { usdtDecimals = Number(d); }).catch(()=>{});
+  }
+}
+
+function requireConnected() {
+  if (!signer) { log('Connect wallet first', 'err'); return false; }
+  initContracts(); // re-init in case addresses were just pasted
+  if (!raffleContract) { log('Paste contract address first', 'err'); return false; }
+  return true;
+}
+
+// ═══════════════════════════════════════
+//  TABS
+// ═══════════════════════════════════════
+function showTab(name) {
+  document.querySelectorAll('.tab').forEach((t,i) => {
+    t.classList.toggle('active', ['rounds','enter','admin'][i] === name);
+  });
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  document.getElementById(`panel-${name}`).classList.add('active');
+}
+
+// ═══════════════════════════════════════
+//  ROUNDS
+// ═══════════════════════════════════════
+async function loadRounds() {
+  if (!requireConnected()) return;
+  log('Loading active rounds…', 'info');
+  try {
+    const ids = await raffleContract.getActiveRounds();
+    const container = document.getElementById('rounds-container');
+    if (ids.length === 0) {
+      container.innerHTML = '<div class="empty">No active rounds</div>';
+      return;
+    }
+    container.innerHTML = '<div class="round-grid" id="round-grid"></div>';
+    const grid = document.getElementById('round-grid');
+    for (const id of ids) {
+      const r = await raffleContract.getRound(id);
+      grid.innerHTML += buildRoundCard(r);
+    }
+    log(`Loaded ${ids.length} round(s)`, 'ok');
+  } catch(e) {
+    log(e.reason || e.message, 'err');
+  }
+}
+
+function buildRoundCard(r) {
+  const id       = Number(r.roundId);
+  const stateName= STATE_NAMES[r.state] || '?';
+  const players  = r.players.length;
+  const max      = Number(r.maxPlayers);
+  const price    = ethers.formatUnits(r.ticketPrice, usdtDecimals);
+  const pool     = (players * parseFloat(price)).toFixed(2);
+  const pct      = max > 0 ? Math.round(players / max * 100) : 0;
+  const winner   = r.winner !== ethers.ZeroAddress
+    ? `${r.winner.slice(0,6)}…${r.winner.slice(-4)}` : '—';
+
+  return `
+  <div class="round-card">
+    <div class="round-id">ROUND #${id}</div>
+    <div class="round-state state-${stateName}">${stateName}</div>
+    <div class="round-stat"><span>Ticket</span><span>${price} USDT</span></div>
+    <div class="round-stat"><span>Players</span><span>${players} / ${max}</span></div>
+    <div class="round-stat"><span>Pool</span><span>${pool} USDT</span></div>
+    <div class="round-stat"><span>Fee</span><span>${Number(r.protocolFeePercentage)}%</span></div>
+    ${stateName === 'COMPLETED' ? `<div class="round-stat"><span>Winner</span><span>${winner}</span></div>` : ''}
+    <div class="progress-bar"><div class="progress-fill" style="width:${pct}%"></div></div>
+    <div class="round-actions">
+      ${stateName === 'OPEN' ? `<button class="btn btn-primary" onclick="quickEnter(${id})">Enter</button>` : ''}
+      ${stateName === 'FROZEN' ? `<button class="btn btn-ghost" onclick="quickSelfRefund(${id})">Self-Refund</button>` : ''}
+    </div>
+  </div>`;
+}
+
+function quickEnter(id) {
+  document.getElementById('enter-roundId').value = id;
+  showTab('enter');
+}
+function quickSelfRefund(id) {
+  document.getElementById('refund-roundId').value = id;
+  showTab('enter');
+}
+
+// ═══════════════════════════════════════
+//  USER ACTIONS
+// ═══════════════════════════════════════
+async function doEnter() {
+  if (!requireConnected()) return;
+  if (!usdtContract) { log('Paste USDT address first', 'err'); return; }
+  const roundId = document.getElementById('enter-roundId').value;
+  if (roundId === '') { log('Enter a round ID', 'err'); return; }
+  try {
+    const r = await raffleContract.getRound(roundId);
+    const price = r.ticketPrice;
+    log(`Approving ${ethers.formatUnits(price, usdtDecimals)} USDT…`, 'info');
+    const approveTx = await usdtContract.approve(CONTRACT_ADDR(), price);
+    logTx(approveTx.hash);
+    await approveTx.wait();
+    log('Approved. Entering round…', 'info');
+    const enterTx = await raffleContract.enter(roundId);
+    logTx(enterTx.hash);
+    await enterTx.wait();
+    log(`Entered round #${roundId}`, 'ok');
+  } catch(e) {
+    log(e.reason || e.message, 'err');
+  }
+}
+
+async function doSelfRefund() {
+  if (!requireConnected()) return;
+  const roundId = document.getElementById('refund-roundId').value;
+  if (roundId === '') { log('Enter a round ID', 'err'); return; }
+  try {
+    log('Submitting self-refund…', 'info');
+    const tx = await raffleContract.selfRefund(roundId);
+    logTx(tx.hash);
+    await tx.wait();
+    log(`Refund complete for round #${roundId}`, 'ok');
+  } catch(e) { log(e.reason || e.message, 'err'); }
+}
+
+// ═══════════════════════════════════════
+//  ADMIN ACTIONS
+// ═══════════════════════════════════════
+async function doCreateRound() {
+  if (!requireConnected()) return;
+  if (!usdtContract) { log('Paste USDT address first', 'err'); return; }
+  const price = document.getElementById('cr-price').value;
+  const max   = document.getElementById('cr-max').value;
+  const fee   = document.getElementById('cr-fee').value;
+  if (!price || !max || fee === '') { log('Fill all fields', 'err'); return; }
+  try {
+    const priceBN = ethers.parseUnits(price, usdtDecimals);
+    log(`Creating round: ${price} USDT × ${max} players, ${fee}% fee…`, 'info');
+    const tx = await raffleContract.createRound(priceBN, max, fee);
+    logTx(tx.hash);
+    const receipt = await tx.wait();
+    // Parse RoundCreated event
+    const iface = new ethers.Interface(RAFFLE_ABI);
+    for (const evlog of receipt.logs) {
+      try {
+        const parsed = iface.parseLog(evlog);
+        if (parsed && parsed.name === 'RoundCreated') {
+          log(`Round #${parsed.args.roundId} created`, 'ok');
+        }
+      } catch {}
+    }
+  } catch(e) { log(e.reason || e.message, 'err'); }
+}
+
+async function doDrawWinner() {
+  if (!requireConnected()) return;
+  const roundId = document.getElementById('adm-roundId').value;
+  if (roundId === '') { log('Enter a round ID', 'err'); return; }
+  try {
+    log(`Requesting VRF for round #${roundId}…`, 'info');
+    const tx = await raffleContract.drawWinner(roundId);
+    logTx(tx.hash);
+    await tx.wait();
+    log('VRF request sent. Waiting for callback…', 'ok');
+  } catch(e) { log(e.reason || e.message, 'err'); }
+}
+
+async function doFreeze() {
+  if (!requireConnected()) return;
+  const roundId = document.getElementById('adm-roundId').value;
+  if (roundId === '') { log('Enter a round ID', 'err'); return; }
+  try {
+    log(`Freezing round #${roundId}…`, 'info');
+    const tx = await raffleContract.freezeRound(roundId);
+    logTx(tx.hash);
+    await tx.wait();
+    log(`Round #${roundId} frozen`, 'ok');
+  } catch(e) { log(e.reason || e.message, 'err'); }
+}
+
+async function doManualDraw() {
+  if (!requireConnected()) return;
+  const roundId = document.getElementById('adm-roundId').value;
+  const idx     = document.getElementById('adm-winnerIdx').value;
+  if (roundId === '' || idx === '') { log('Fill round ID and winner index', 'err'); return; }
+  try {
+    log(`Manual pick: round #${roundId} index ${idx}…`, 'info');
+    const tx = await raffleContract.manualDrawWinner(roundId, idx);
+    logTx(tx.hash);
+    await tx.wait();
+    log(`Winner picked for round #${roundId}`, 'ok');
+  } catch(e) { log(e.reason || e.message, 'err'); }
+}
+
+async function doAdminRefund() {
+  if (!requireConnected()) return;
+  const roundId = document.getElementById('adm-refund-roundId').value;
+  const player  = document.getElementById('adm-refund-player').value.trim();
+  if (roundId === '') { log('Enter a round ID', 'err'); return; }
+  try {
+    if (player === '' || player === '0x') {
+      log(`Refunding ALL players in round #${roundId}…`, 'info');
+      const tx = await raffleContract.refundAll(roundId);
+      logTx(tx.hash);
+      await tx.wait();
+      log(`All players refunded in round #${roundId}`, 'ok');
+    } else {
+      log(`Refunding ${player} in round #${roundId}…`, 'info');
+      const tx = await raffleContract.refundPlayer(roundId, player);
+      logTx(tx.hash);
+      await tx.wait();
+      log(`Refunded ${player}`, 'ok');
+    }
+  } catch(e) { log(e.reason || e.message, 'err'); }
+}
+
+async function loadFees() {
+  if (!requireConnected()) return;
+  try {
+    const fees = await raffleContract.unclaimedFees();
+    document.getElementById('fees-display').textContent =
+      ethers.formatUnits(fees, usdtDecimals) + ' USDT';
+  } catch(e) { log(e.reason || e.message, 'err'); }
+}
+
+async function doWithdrawFees() {
+  if (!requireConnected()) return;
+  try {
+    log('Withdrawing fees…', 'info');
+    const tx = await raffleContract.withdrawFees();
+    logTx(tx.hash);
+    await tx.wait();
+    log('Fees withdrawn', 'ok');
+    loadFees();
+  } catch(e) { log(e.reason || e.message, 'err'); }
+}
+</script>
+</body>
+</html>
