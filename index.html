@@ -3,489 +3,844 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>LuckyWinner — Base Sepolia</title>
-<link rel="preconnect" href="https://fonts.googleapis.com"/>
-<link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Syne:wght@400;700;800&display=swap" rel="stylesheet"/>
+<title>LuckyWinner</title>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=DM+Mono:wght@300;400;500&display=swap" rel="stylesheet"/>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/ethers/6.7.0/ethers.umd.min.js"></script>
 <style>
-  :root {
-    --bg: #0a0a0a; --surface: #111; --border: #222;
-    --accent: #e8ff47; --accent2: #ff4757; --text: #f0f0f0;
-    --muted: #555; --green: #47ffa0;
-    --mono: 'Space Mono', monospace; --sans: 'Syne', sans-serif;
-  }
-  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-  body { background: var(--bg); color: var(--text); font-family: var(--sans); min-height: 100vh; padding: 24px; }
-  a { color: var(--accent); }
+:root{
+  --bg:       #f0fafa;
+  --surface:  #ffffff;
+  --glass:    rgba(255,255,255,0.72);
+  --border:   rgba(180,230,230,0.55);
+  --teal:     #7ee8e8;
+  --teal2:    #a8f0f0;
+  --teal3:    #d4f8f8;
+  --pink:     #ffb3cc;
+  --pink2:    #ffd6e7;
+  --pink3:    #fff0f6;
+  --rose:     #ff85a8;
+  --peach:    #ffcba4;
+  --gold:     #e8c97a;
+  --lav:      #d4b8f0;
+  --lav2:     #ede0ff;
+  --ink:      #3a3050;
+  --mid:      #8a7ea8;
+  --muted:    #b8aed0;
+  --white:    #ffffff;
+  --sans:     'Outfit', sans-serif;
+  --mono:     'DM Mono', monospace;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
 
-  header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 32px; flex-wrap: wrap; gap: 12px; }
-  .logo { font-weight: 800; font-size: 26px; letter-spacing: -1px; }
-  .logo span { color: var(--accent); }
-  .badge { font-family: var(--mono); font-size: 10px; background: #001a0a; border: 1px solid #005522; color: #44ffaa; padding: 3px 8px; border-radius: 4px; vertical-align: middle; margin-left: 8px; }
-  #wallet-btn { font-family: var(--mono); font-size: 12px; background: transparent; border: 1px solid var(--border); color: var(--text); padding: 8px 16px; border-radius: 6px; cursor: pointer; transition: all .15s; }
-  #wallet-btn:hover { border-color: var(--accent); color: var(--accent); }
-  #wallet-btn.connected { border-color: var(--green); color: var(--green); }
+body{
+  background:var(--bg);
+  color:var(--ink);
+  font-family:var(--sans);
+  min-height:100vh;
+  padding-bottom:80px;
+  /* iridescent mesh background */
+  background-image:
+    radial-gradient(ellipse 80% 60% at 10% 0%,   rgba(126,232,232,.25) 0%, transparent 60%),
+    radial-gradient(ellipse 60% 50% at 90% 10%,  rgba(212,184,240,.20) 0%, transparent 55%),
+    radial-gradient(ellipse 70% 60% at 80% 90%,  rgba(255,179,204,.20) 0%, transparent 60%),
+    radial-gradient(ellipse 50% 40% at 20% 85%,  rgba(168,240,240,.18) 0%, transparent 55%),
+    radial-gradient(ellipse 40% 30% at 50% 45%,  rgba(255,203,164,.10) 0%, transparent 50%);
+}
 
-  .tabs { display: flex; gap: 4px; margin-bottom: 24px; border-bottom: 1px solid var(--border); }
-  .tab { font-family: var(--mono); font-size: 12px; padding: 8px 16px; cursor: pointer; color: var(--muted); border-bottom: 2px solid transparent; margin-bottom: -1px; transition: all .15s; background: none; border-top: none; border-left: none; border-right: none; }
-  .tab:hover { color: var(--text); }
-  .tab.active { color: var(--accent); border-bottom-color: var(--accent); }
-  .panel { display: none; }
-  .panel.active { display: block; }
+/* shimmer overlay */
+body::before{
+  content:'';position:fixed;inset:0;
+  background:linear-gradient(
+    135deg,
+    transparent 0%,
+    rgba(255,255,255,.06) 25%,
+    transparent 50%,
+    rgba(126,232,232,.04) 75%,
+    transparent 100%
+  );
+  pointer-events:none;z-index:0;
+}
 
-  .card { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 20px; margin-bottom: 16px; }
-  .card-title { font-family: var(--mono); font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: 2px; margin-bottom: 16px; }
+/* ── NAV ─────────────────────────────────────────── */
+nav{
+  position:sticky;top:0;z-index:500;
+  display:flex;align-items:center;justify-content:space-between;
+  padding:14px 32px;
+  background:rgba(255,255,255,.75);
+  backdrop-filter:blur(20px);
+  border-bottom:1.5px solid var(--border);
+  box-shadow:0 2px 24px rgba(126,232,232,.15);
+}
+.logo{
+  font-family:var(--sans);font-weight:800;font-size:22px;
+  background:linear-gradient(120deg,#7bcfcf,#c084e0,#ff85a8,#7bcfcf);
+  background-size:200% auto;
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;
+  background-clip:text;
+  animation:shimmerText 4s linear infinite;
+  letter-spacing:-.3px;
+}
+@keyframes shimmerText{0%{background-position:0%}100%{background-position:200%}}
 
-  label { font-family: var(--mono); font-size: 11px; color: var(--muted); display: block; margin-bottom: 6px; margin-top: 14px; }
-  label:first-of-type { margin-top: 0; }
-  input[type=text], input[type=number] { width: 100%; background: var(--bg); border: 1px solid var(--border); color: var(--text); font-family: var(--mono); font-size: 13px; padding: 9px 12px; border-radius: 6px; outline: none; transition: border-color .15s; }
-  input:focus { border-color: var(--accent); }
+.net-badge{
+  font-family:var(--mono);font-size:10px;
+  background:linear-gradient(135deg,var(--teal3),var(--lav2));
+  color:var(--mid);border:1.5px solid var(--border);
+  padding:3px 10px;border-radius:20px;
+  margin-left:10px;letter-spacing:.5px;vertical-align:middle;
+}
+.nav-right{display:flex;align-items:center;gap:8px}
 
-  .btn { display: inline-block; margin-top: 16px; padding: 10px 22px; font-family: var(--mono); font-size: 12px; border-radius: 6px; cursor: pointer; border: none; transition: all .15s; font-weight: 700; }
-  .btn-primary { background: var(--accent); color: #000; }
-  .btn-primary:hover { background: #d4eb00; }
-  .btn-danger { background: transparent; border: 1px solid var(--accent2); color: var(--accent2); }
-  .btn-danger:hover { background: var(--accent2); color: #fff; }
-  .btn-ghost { background: transparent; border: 1px solid var(--border); color: var(--text); }
-  .btn-ghost:hover { border-color: var(--accent); color: var(--accent); }
-  .btn:disabled { opacity: .35; cursor: not-allowed; }
+#wallet-btn{
+  font-family:var(--sans);font-size:13px;font-weight:700;
+  background:linear-gradient(135deg,var(--teal),var(--lav));
+  color:var(--white);border:none;
+  padding:9px 22px;border-radius:30px;cursor:pointer;
+  box-shadow:0 4px 16px rgba(126,232,232,.4);
+  transition:all .25s;
+}
+#wallet-btn:hover{transform:translateY(-2px);box-shadow:0 8px 24px rgba(126,232,232,.5)}
+#wallet-btn.connected{
+  background:linear-gradient(135deg,#7bcfcf,#a8e8c0);
+  box-shadow:0 4px 16px rgba(168,240,192,.5);
+}
+#logout-btn{
+  font-family:var(--sans);font-size:12px;font-weight:600;
+  background:var(--glass);color:var(--mid);
+  border:1.5px solid var(--border);
+  padding:8px 16px;border-radius:30px;cursor:pointer;
+  display:none;transition:all .2s;
+  backdrop-filter:blur(8px);
+}
+#logout-btn:hover{color:var(--rose);border-color:var(--pink);background:var(--pink3)}
+#logout-btn.visible{display:block}
 
-  .round-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 12px; }
-  .round-card { background: var(--bg); border: 1px solid var(--border); border-radius: 8px; padding: 16px; }
-  .round-card:hover { border-color: #333; }
-  .round-id { font-family: var(--mono); font-size: 10px; color: var(--muted); margin-bottom: 8px; }
-  .round-state { display: inline-block; font-family: var(--mono); font-size: 10px; padding: 2px 8px; border-radius: 20px; margin-bottom: 12px; }
-  .state-OPEN        { background: #0a2a0a; color: var(--green);  border: 1px solid #1a5a1a; }
-  .state-READY       { background: #0a1a2a; color: #47aaff;       border: 1px solid #1a4a7a; }
-  .state-CALCULATING { background: #1a1a0a; color: #ffcc44;       border: 1px solid #4a4a0a; }
-  .state-FROZEN      { background: #0a1a2a; color: #88ccff;       border: 1px solid #1a4a6a; }
-  .state-COMPLETED   { background: #1a0a1a; color: #cc88ff;       border: 1px solid #4a1a4a; }
-  .round-stat { display: flex; justify-content: space-between; font-family: var(--mono); font-size: 11px; color: var(--muted); margin-bottom: 4px; }
-  .round-stat span:last-child { color: var(--text); }
-  .progress-bar { height: 3px; background: var(--border); border-radius: 2px; margin: 10px 0; overflow: hidden; }
-  .progress-fill { height: 100%; background: var(--accent); border-radius: 2px; transition: width .3s; }
-  .round-actions { margin-top: 12px; display: flex; gap: 8px; flex-wrap: wrap; }
-  .round-actions .btn { margin-top: 0; padding: 6px 14px; font-size: 11px; }
+/* ── BALANCE BAR ─────────────────────────────────── */
+#balance-bar{
+  display:none;align-items:center;gap:14px;flex-wrap:wrap;
+  margin:16px 32px 0;
+  background:var(--glass);
+  border:1.5px solid var(--border);
+  border-radius:20px;padding:12px 22px;
+  backdrop-filter:blur(16px);
+  box-shadow:0 4px 20px rgba(126,232,232,.12);
+}
+#balance-bar .lbl{font-size:11px;font-weight:600;color:var(--muted);letter-spacing:.5px}
+#balance-bar .amt{
+  font-family:var(--mono);font-size:15px;font-weight:500;
+  background:linear-gradient(120deg,var(--teal),var(--lav));
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
+}
+.pbtн,.pbtn{
+  font-family:var(--sans);font-size:12px;font-weight:700;
+  border:none;border-radius:20px;padding:6px 16px;cursor:pointer;transition:all .2s;
+}
+.pbtn:hover{transform:translateY(-1px)}
+.pbtn-mint{background:linear-gradient(135deg,var(--teal),#a8f0c8);color:var(--ink);box-shadow:0 3px 10px rgba(126,232,232,.3)}
+.pbtn-ref {background:var(--surface);color:var(--mid);border:1.5px solid var(--border)}
 
-  #log { font-family: var(--mono); font-size: 11px; background: var(--bg); border: 1px solid var(--border); border-radius: 6px; padding: 12px; max-height: 220px; overflow-y: auto; margin-top: 16px; }
-  .log-line { padding: 3px 0; border-bottom: 1px solid #1a1a1a; }
-  .log-line:last-child { border-bottom: none; }
-  .log-ok   { color: var(--green); }
-  .log-err  { color: var(--accent2); }
-  .log-info { color: var(--muted); }
-  .log-tx   { color: #ffcc44; }
+/* ── MAIN ────────────────────────────────────────── */
+main{max-width:1100px;margin:0 auto;padding:24px 32px 0;position:relative;z-index:1}
 
-  .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-  .hint { font-family: var(--mono); font-size: 10px; color: var(--muted); margin-top: 6px; }
-  .empty { text-align: center; font-family: var(--mono); font-size: 12px; color: var(--muted); padding: 40px; }
-  hr { border: none; border-top: 1px solid var(--border); margin: 20px 0; }
+/* ── TABS ────────────────────────────────────────── */
+.tabs{display:flex;gap:6px;margin-bottom:24px;flex-wrap:wrap}
+.tab{
+  font-family:var(--sans);font-size:13px;font-weight:700;
+  padding:9px 22px;border-radius:30px;
+  border:1.5px solid var(--border);
+  background:var(--glass);color:var(--mid);
+  cursor:pointer;transition:all .2s;
+  backdrop-filter:blur(8px);
+}
+.tab:hover{color:var(--ink);border-color:var(--teal);background:var(--teal3)}
+.tab.active{
+  background:linear-gradient(135deg,var(--teal),var(--lav));
+  color:var(--white);border-color:transparent;
+  box-shadow:0 4px 16px rgba(126,232,232,.35);
+  transform:translateY(-1px);
+}
+.panel{display:none}.panel.active{display:block}
 
-  .balance-bar { display: flex; align-items: center; gap: 12px; font-family: var(--mono); font-size: 11px; color: var(--muted); background: #0a0f0a; border: 1px solid #1a2a1a; border-radius: 6px; padding: 8px 14px; margin-bottom: 20px; }
-  .balance-bar span { color: var(--green); font-size: 13px; }
-  @media (max-width: 600px) { .two-col { grid-template-columns: 1fr; } }
+/* ── CARDS ───────────────────────────────────────── */
+.card{
+  background:var(--glass);
+  border:1.5px solid var(--border);
+  border-radius:22px;padding:24px;
+  margin-bottom:16px;
+  backdrop-filter:blur(16px);
+  box-shadow:0 4px 28px rgba(126,232,232,.10),
+             inset 0 1px 0 rgba(255,255,255,.8);
+}
+.card-title{
+  font-size:11px;font-weight:700;letter-spacing:1.5px;
+  text-transform:uppercase;
+  background:linear-gradient(120deg,var(--teal),var(--lav));
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;
+  background-clip:text;margin-bottom:18px;
+}
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+@media(max-width:640px){.two-col{grid-template-columns:1fr}}
+
+/* ── FORM ────────────────────────────────────────── */
+label{
+  font-size:12px;font-weight:600;color:var(--mid);
+  display:block;margin:14px 0 5px;letter-spacing:.3px;
+}
+label:first-of-type{margin-top:0}
+input[type=text],input[type=number]{
+  width:100%;
+  background:rgba(255,255,255,.8);
+  border:1.5px solid var(--border);
+  color:var(--ink);
+  font-family:var(--sans);font-size:14px;font-weight:500;
+  padding:10px 16px;border-radius:14px;
+  outline:none;transition:all .2s;
+  box-shadow:inset 0 2px 6px rgba(126,232,232,.08);
+}
+input:focus{border-color:var(--teal);box-shadow:0 0 0 3px rgba(126,232,232,.18),inset 0 2px 6px rgba(126,232,232,.08)}
+input::placeholder{color:var(--muted)}
+
+.btn{
+  display:inline-flex;align-items:center;gap:6px;
+  margin-top:16px;padding:10px 24px;
+  font-family:var(--sans);font-size:13px;font-weight:700;
+  border-radius:30px;cursor:pointer;border:none;
+  transition:all .22s;
+}
+.btn:hover{transform:translateY(-2px)}
+.btn:active{transform:translateY(0)}
+.btn:disabled{opacity:.4;cursor:not-allowed;transform:none}
+.btn-primary{
+  background:linear-gradient(135deg,var(--rose),var(--pink));
+  color:#fff;box-shadow:0 4px 16px rgba(255,133,168,.35);
+}
+.btn-primary:hover{box-shadow:0 8px 24px rgba(255,133,168,.45)}
+.btn-teal{
+  background:linear-gradient(135deg,var(--teal),#a0e8e8);
+  color:var(--ink);box-shadow:0 4px 16px rgba(126,232,232,.35);
+}
+.btn-lav{
+  background:linear-gradient(135deg,var(--lav),var(--lav2));
+  color:var(--ink);box-shadow:0 4px 16px rgba(212,184,240,.35);
+}
+.btn-peach{
+  background:linear-gradient(135deg,var(--peach),#ffd8b4);
+  color:var(--ink);box-shadow:0 4px 16px rgba(232,180,100,.25);
+}
+.btn-danger{
+  background:linear-gradient(135deg,#ff8fa8,#ffb3c8);
+  color:#fff;box-shadow:0 4px 16px rgba(255,143,168,.3);
+}
+.btn-ghost{
+  background:var(--glass);color:var(--mid);
+  border:1.5px solid var(--border);
+  backdrop-filter:blur(8px);
+}
+.btn-ghost:hover{border-color:var(--teal);color:var(--ink);background:var(--teal3)}
+hr{border:none;border-top:1.5px dashed rgba(180,230,230,.55);margin:18px 0}
+.hint{font-size:11px;color:var(--muted);margin-top:6px;line-height:1.6;font-weight:500}
+
+/* ── ROUND GRID ──────────────────────────────────── */
+.round-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(264px,1fr));gap:14px}
+.round-card{
+  background:rgba(255,255,255,.68);
+  border:1.5px solid var(--border);
+  border-radius:20px;padding:18px;
+  transition:all .25s;cursor:pointer;
+  backdrop-filter:blur(12px);
+  box-shadow:0 2px 16px rgba(126,232,232,.10),
+             inset 0 1px 0 rgba(255,255,255,.9);
+  position:relative;overflow:hidden;
+}
+/* iridescent top stripe */
+.round-card::before{
+  content:'';position:absolute;top:0;left:0;right:0;height:4px;
+  background:linear-gradient(90deg,var(--teal),var(--lav),var(--pink),var(--peach),var(--teal));
+  background-size:200% auto;
+  animation:shimmerBar 3s linear infinite;
+}
+@keyframes shimmerBar{0%{background-position:0%}100%{background-position:200%}}
+.round-card:hover{
+  transform:translateY(-4px);
+  box-shadow:0 12px 32px rgba(126,232,232,.18),
+             inset 0 1px 0 rgba(255,255,255,.9);
+  border-color:rgba(126,232,232,.6);
+}
+.round-num{
+  font-family:var(--mono);font-size:10px;color:var(--muted);
+  letter-spacing:1px;margin-bottom:8px;margin-top:5px;
+}
+.state-pill{
+  display:inline-block;font-size:10px;font-weight:700;
+  padding:3px 12px;border-radius:20px;margin-bottom:12px;letter-spacing:.3px;
+}
+.s-OPEN       {background:linear-gradient(135deg,#d4f8f0,#b8f0e8);color:#2a8a7a;border:1px solid rgba(126,232,200,.4)}
+.s-READY      {background:linear-gradient(135deg,var(--lav2),#e8d4ff);color:#6040b0;border:1px solid rgba(180,140,240,.4)}
+.s-CALCULATING{background:linear-gradient(135deg,#fff4d4,#ffe8b0);color:#8a6010;border:1px solid rgba(220,180,80,.4)}
+.s-FROZEN     {background:linear-gradient(135deg,#d4eeff,#b8dcff);color:#2060a0;border:1px solid rgba(100,160,240,.4)}
+.s-COMPLETED  {background:linear-gradient(135deg,var(--pink2),#ffd4e8);color:#a04070;border:1px solid rgba(255,140,180,.4)}
+.r-row{display:flex;justify-content:space-between;font-size:12px;color:var(--muted);margin-bottom:3px;font-weight:500}
+.r-row b{color:var(--ink);font-weight:700}
+.pbar{height:5px;background:rgba(126,232,232,.15);border-radius:5px;margin:10px 0;overflow:hidden}
+.pfill{
+  height:100%;border-radius:5px;
+  background:linear-gradient(90deg,var(--teal),var(--lav),var(--pink));
+  background-size:200% auto;
+  animation:shimmerBar 2s linear infinite;
+  transition:width .5s;
+}
+.r-actions{margin-top:12px;display:flex;gap:8px;flex-wrap:wrap}
+.r-actions .btn{margin-top:0;padding:6px 16px;font-size:11px}
+.empty-state{text-align:center;padding:52px 24px;color:var(--muted)}
+.empty-ico{
+  font-size:42px;margin-bottom:12px;
+  filter:drop-shadow(0 2px 8px rgba(126,232,232,.3));
+}
+.empty-state p{font-size:14px;font-weight:600}
+
+/* ── MODAL ───────────────────────────────────────── */
+.modal-bg{
+  display:none;position:fixed;inset:0;z-index:600;
+  background:rgba(100,80,140,.2);backdrop-filter:blur(12px);
+  align-items:center;justify-content:center;padding:20px;
+}
+.modal-bg.open{display:flex}
+.modal{
+  background:rgba(255,255,255,.92);
+  border:1.5px solid var(--border);
+  border-radius:24px;padding:28px;
+  max-width:520px;width:100%;
+  box-shadow:0 20px 60px rgba(126,232,232,.2),
+             0 0 0 1px rgba(255,255,255,.8);
+  animation:popIn .22s cubic-bezier(.34,1.56,.64,1);
+  max-height:82vh;overflow-y:auto;
+  backdrop-filter:blur(20px);
+}
+@keyframes popIn{from{transform:scale(.88);opacity:0}to{transform:scale(1);opacity:1}}
+.modal-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:20px}
+.modal-title{
+  font-size:20px;font-weight:800;
+  background:linear-gradient(120deg,var(--teal),var(--lav),var(--rose));
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
+}
+.close-btn{
+  background:var(--pink2);border:none;color:var(--rose);
+  width:32px;height:32px;border-radius:50%;font-size:14px;font-weight:800;
+  cursor:pointer;display:flex;align-items:center;justify-content:center;
+  transition:all .2s;
+}
+.close-btn:hover{background:var(--pink);color:#fff;transform:rotate(90deg)}
+.modal-label{font-size:10px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);margin-bottom:8px}
+.modal-section{margin-bottom:16px}
+.player-list{display:flex;flex-direction:column;gap:4px;max-height:200px;overflow-y:auto}
+.player-row{
+  display:flex;justify-content:space-between;align-items:center;
+  background:rgba(126,232,232,.08);
+  border:1px solid rgba(126,232,232,.2);
+  border-radius:10px;padding:8px 14px;
+  font-family:var(--mono);font-size:11px;
+  transition:all .15s;
+}
+.player-row:hover{background:rgba(126,232,232,.15);border-color:rgba(126,232,232,.4)}
+.player-row .addr{color:var(--ink);font-weight:400}
+.player-row .tckt{
+  background:linear-gradient(135deg,var(--lav2),var(--pink2));
+  color:var(--mid);border:1px solid var(--border);
+  padding:2px 10px;border-radius:10px;font-size:10px;font-weight:700;
+}
+.winner-box{
+  background:linear-gradient(135deg,rgba(255,229,180,.25),rgba(126,232,200,.2));
+  border:1.5px solid rgba(212,184,120,.4);
+  border-radius:16px;padding:16px;
+  display:flex;align-items:flex-start;gap:12px;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.8);
+}
+.winner-star{
+  font-size:26px;
+  filter:drop-shadow(0 2px 6px rgba(232,190,80,.5));
+  flex-shrink:0;margin-top:2px;
+}
+.waddr{font-family:var(--mono);font-size:12px;color:var(--ink);word-break:break-all;font-weight:400}
+.wprize{font-size:12px;font-weight:700;color:#8a6010;margin-top:4px}
+
+/* ── HISTORY ─────────────────────────────────────── */
+.search-bar{display:flex;gap:10px;margin-bottom:16px}
+.search-bar input{flex:1}
+.search-bar .btn{margin-top:0}
+
+/* ── LOG ─────────────────────────────────────────── */
+#log{
+  font-family:var(--mono);font-size:11px;
+  background:rgba(255,255,255,.7);
+  border:1.5px solid var(--border);
+  border-radius:16px;padding:14px;
+  max-height:190px;overflow-y:auto;margin-top:20px;
+  backdrop-filter:blur(12px);
+  box-shadow:inset 0 2px 8px rgba(126,232,232,.06);
+}
+.log-line{padding:3px 0;border-bottom:1px solid rgba(126,232,232,.12);line-height:1.5}
+.log-line:last-child{border-bottom:none}
+.log-ok  {color:#2a9a7a}
+.log-err {color:#e05080}
+.log-info{color:var(--muted)}
+.log-tx  {color:#8a6010}
+
+/* ── FEES ────────────────────────────────────────── */
+.fees-big{
+  font-size:28px;font-weight:800;margin:10px 0;
+  background:linear-gradient(120deg,var(--gold),#e8a860,var(--peach));
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
+}
+
+/* ── SPARKLE BURST ───────────────────────────────── */
+.sparkle{
+  position:fixed;width:5px;height:5px;border-radius:50%;
+  pointer-events:none;z-index:900;
+  animation:sparkleFly var(--dur) ease-out forwards;
+}
+@keyframes sparkleFly{
+  0%  {transform:translate(0,0) scale(1.2);opacity:1}
+  80% {opacity:.8}
+  100%{transform:translate(var(--dx),var(--dy)) scale(0);opacity:0}
+}
+/* ── SCROLLBAR ───────────────────────────────────── */
+::-webkit-scrollbar{width:5px;height:5px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:var(--teal2);border-radius:3px}
+::-webkit-scrollbar-thumb:hover{background:var(--teal)}
 </style>
 </head>
 <body>
 
-<header>
-  <div class="logo">Lucky<span>Winner</span> <span class="badge">BASE SEPOLIA</span></div>
-  <button id="wallet-btn" onclick="connectWallet()">Connect Wallet</button>
-</header>
-
-<!-- BALANCE BAR -->
-<div class="balance-bar" id="balance-bar" style="display:none">
-  MockUSDT balance: <span id="usdt-balance">—</span> &nbsp;|&nbsp;
-  <button class="btn btn-ghost" style="margin-top:0;padding:4px 12px;font-size:11px" onclick="doMint()">+ Mint 1000 USDT</button>
-  <button class="btn btn-ghost" style="margin-top:0;padding:4px 12px;font-size:11px;margin-left:4px" onclick="refreshBalance()">↻</button>
-</div>
-
-<div class="tabs">
-  <button class="tab active" onclick="showTab('rounds')">Active Rounds</button>
-  <button class="tab" onclick="showTab('enter')">Enter Round</button>
-  <button class="tab" onclick="showTab('admin')">Admin</button>
-</div>
-
-<!-- ROUNDS PANEL -->
-<div id="panel-rounds" class="panel active">
-  <div class="card">
-    <div class="card-title">Live Rounds</div>
-    <button class="btn btn-ghost" style="margin-top:0;margin-bottom:16px" onclick="loadRounds()">↻ Refresh</button>
-    <div id="rounds-container"><div class="empty">Connect wallet and click Refresh</div></div>
+<nav>
+  <div>
+    <span class="logo">LuckyWinner</span>
+    <span class="net-badge">BASE SEPOLIA</span>
   </div>
-</div>
-
-<!-- ENTER PANEL -->
-<div id="panel-enter" class="panel">
-  <div class="card">
-    <div class="card-title">Buy a Ticket</div>
-    <label>Round ID</label>
-    <input type="number" id="enter-roundId" min="0" placeholder="0"/>
-    <p class="hint">Approves exact ticket price then enters the round in two txs.</p>
-    <button class="btn btn-primary" onclick="doEnter()">Approve & Enter</button>
+  <div class="nav-right">
+    <button id="logout-btn" onclick="doLogout()">Disconnect</button>
+    <button id="wallet-btn" onclick="connectWallet()">Connect Wallet</button>
   </div>
+</nav>
+
+<div id="balance-bar">
+  <span class="lbl">MockUSDT</span>
+  <span class="amt" id="usdt-balance">---</span>
+  <button class="pbtn pbtn-mint" onclick="doMint()">+ Mint 1000</button>
+  <button class="pbtn pbtn-ref"  onclick="refreshBalance()">Refresh</button>
 </div>
 
-<!-- ADMIN PANEL -->
-<div id="panel-admin" class="panel">
-  <div class="two-col">
+<main>
+  <div class="tabs">
+    <button class="tab active" onclick="showTab('rounds')">Active Rounds</button>
+    <button class="tab" onclick="showTab('history')">History</button>
+    <button class="tab" onclick="showTab('enter')">Enter Round</button>
+    <button class="tab" onclick="showTab('admin')">Admin</button>
+  </div>
+
+  <!-- ACTIVE ROUNDS -->
+  <div id="panel-rounds" class="panel active">
     <div class="card">
-      <div class="card-title">Create Round</div>
-      <label>Ticket Price (USDT whole number)</label>
-      <input type="number" id="cr-price" placeholder="10" min="1"/>
-      <label>Max Players</label>
-      <input type="number" id="cr-max" placeholder="5" min="2"/>
-      <label>Protocol Fee %  (0 – 20)</label>
-      <input type="number" id="cr-fee" placeholder="5" min="0" max="20"/>
-      <button class="btn btn-primary" onclick="doCreateRound()">Create</button>
-    </div>
-    <div class="card">
-      <div class="card-title">Draw / Freeze / Manual</div>
-      <label>Round ID</label>
-      <input type="number" id="adm-roundId" placeholder="0" min="0"/>
-      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:12px">
-        <button class="btn btn-ghost" onclick="doDrawWinner()">Draw (VRF)</button>
-        <button class="btn btn-danger" onclick="doFreeze()">Freeze</button>
+      <div class="card-title">Live Rounds</div>
+      <button class="btn btn-ghost" style="margin-top:0;margin-bottom:18px" onclick="loadRounds()">Refresh</button>
+      <div id="rounds-container">
+        <div class="empty-state">
+          <div class="empty-ico">&#10024;</div>
+          <p>Connect wallet and click Refresh</p>
+        </div>
       </div>
-      <hr/>
-      <label>Manual Winner Index (FROZEN only)</label>
-      <input type="number" id="adm-winnerIdx" placeholder="0" min="0"/>
-      <button class="btn btn-ghost" onclick="doManualDraw()">Manual Pick</button>
     </div>
   </div>
-  <div class="two-col">
+
+  <!-- HISTORY -->
+  <div id="panel-history" class="panel">
     <div class="card">
-      <div class="card-title">Refund (FROZEN)</div>
+      <div class="card-title">Round History</div>
+      <div class="search-bar">
+        <input type="number" id="hist-roundId" placeholder="Round ID" min="0"/>
+        <button class="btn btn-lav" style="margin-top:0" onclick="loadHistoryRound()">Look up</button>
+      </div>
+      <div id="hist-result">
+        <div class="empty-state">
+          <div class="empty-ico">&#128269;</div>
+          <p>Enter a round ID to see details</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ENTER -->
+  <div id="panel-enter" class="panel">
+    <div class="card">
+      <div class="card-title">Buy a Ticket</div>
       <label>Round ID</label>
-      <input type="number" id="adm-refund-roundId" placeholder="0" min="0"/>
-      <label>Player Address (blank = refund all)</label>
-      <input type="text" id="adm-refund-player" placeholder="0x... or leave blank"/>
-      <button class="btn btn-danger" onclick="doAdminRefund()">Refund</button>
+      <input type="number" id="enter-roundId" min="0" placeholder="e.g. 0"/>
+      <p class="hint">Step 1 approves USDT allowance. Step 2 enters the round. Two wallet prompts.</p>
+      <button class="btn btn-primary" onclick="doEnter()">Approve + Enter</button>
     </div>
-    <div class="card">
-      <div class="card-title">Protocol Fees</div>
-      <p class="hint" style="margin-top:0">Accumulated fees ready to withdraw.</p>
-      <button class="btn btn-ghost" onclick="loadFees()" style="margin-top:12px">Check Balance</button>
-      <div id="fees-display" style="font-family:var(--mono);font-size:20px;margin-top:12px;color:var(--accent)">—</div>
-      <button class="btn btn-primary" onclick="doWithdrawFees()">Withdraw</button>
+  </div>
+
+  <!-- ADMIN -->
+  <div id="panel-admin" class="panel">
+    <div class="two-col">
+      <div class="card">
+        <div class="card-title">Create Round</div>
+        <label>Ticket Price (USDT)</label>
+        <input type="number" id="cr-price" placeholder="10" min="1"/>
+        <label>Max Players</label>
+        <input type="number" id="cr-max" placeholder="5" min="2"/>
+        <label>Protocol Fee % (0 - 20)</label>
+        <input type="number" id="cr-fee" placeholder="5" min="0" max="20"/>
+        <button class="btn btn-primary" onclick="doCreateRound()">Create</button>
+      </div>
+      <div class="card">
+        <div class="card-title">Draw / Freeze</div>
+        <label>Round ID</label>
+        <input type="number" id="adm-roundId" placeholder="0" min="0"/>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:14px">
+          <button class="btn btn-teal"   style="margin-top:0" onclick="doDrawWinner()">Draw (VRF)</button>
+          <button class="btn btn-danger" style="margin-top:0" onclick="doFreeze()">Freeze</button>
+        </div>
+        <hr/>
+        <label>Manual Winner Index (FROZEN only)</label>
+        <input type="number" id="adm-winnerIdx" placeholder="0" min="0"/>
+        <button class="btn btn-peach" onclick="doManualDraw()">Manual Pick</button>
+      </div>
     </div>
+    <div class="two-col">
+      <div class="card">
+        <div class="card-title">Refund (FROZEN)</div>
+        <label>Round ID</label>
+        <input type="number" id="adm-refund-roundId" placeholder="0" min="0"/>
+        <label>Player Address (blank = refund all)</label>
+        <input type="text" id="adm-refund-player" placeholder="0x... or leave blank"/>
+        <button class="btn btn-danger" onclick="doAdminRefund()">Refund</button>
+      </div>
+      <div class="card">
+        <div class="card-title">Protocol Fees</div>
+        <p class="hint" style="margin-top:0">Accumulated protocol income.</p>
+        <button class="btn btn-ghost" onclick="loadFees()" style="margin-top:14px">Check Balance</button>
+        <div class="fees-big" id="fees-display">---</div>
+        <button class="btn btn-peach" onclick="doWithdrawFees()">Withdraw All</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="log"><div class="log-line log-info">// transaction log</div></div>
+</main>
+
+<!-- MODAL -->
+<div class="modal-bg" id="modal-bg" onclick="closeModal(event)">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title" id="modal-title">Round #0</div>
+      <button class="close-btn" onclick="closeModalDirect()">x</button>
+    </div>
+    <div id="modal-body"></div>
   </div>
 </div>
-
-<div id="log"><div class="log-line log-info">// tx log</div></div>
 
 <script>
-// ─── HARDCODED ADDRESSES ───────────────────────────────────────
-const CONTRACT_ADDR = '0x73B0124e624086acaA932d5a0252E3e9f66cAc1e';
-const USDT_ADDR     = '0xfdC43A29086BaA6FA6CFE2007Bf6Fd21AA21c4eB';
-const BASE_SEPOLIA_CHAIN_ID = '0x14a34'; // 84532
+const CONTRACT_ADDR     = '0x73B0124e624086acaA932d5a0252E3e9f66cAc1e';
+const USDT_ADDR         = '0xfdC43A29086BaA6FA6CFE2007Bf6Fd21AA21c4eB';
+const BASE_SEP_CHAIN_ID = '0x14a34';
+const USDT_DECIMALS     = 6;
+const STATE_NAMES       = ['OPEN','READY','CALCULATING','FROZEN','COMPLETED'];
 
-// ─── ABIs ──────────────────────────────────────────────────────
 const RAFFLE_ABI = [
-  "function createRound(uint256 ticketPrice, uint256 maxPlayers, uint256 protocolFeePercentage) external returns (uint256)",
-  "function enter(uint256 roundId) external",
-  "function drawWinner(uint256 roundId) external returns (uint256)",
-  "function freezeRound(uint256 roundId) external",
-  "function manualDrawWinner(uint256 roundId, uint256 winnerIndex) external",
-  "function refundPlayer(uint256 roundId, address player) external",
-  "function refundAll(uint256 roundId) external",
+  "function createRound(uint256,uint256,uint256) external returns (uint256)",
+  "function enter(uint256) external",
+  "function drawWinner(uint256) external returns (uint256)",
+  "function freezeRound(uint256) external",
+  "function manualDrawWinner(uint256,uint256) external",
+  "function refundPlayer(uint256,address) external",
+  "function refundAll(uint256) external",
   "function withdrawFees() external",
   "function unclaimedFees() view returns (uint256)",
   "function getActiveRounds() view returns (uint256[])",
-  "function getRound(uint256 roundId) view returns (tuple(uint256 roundId, uint8 state, address[] players, uint256 ticketPrice, uint256 maxPlayers, uint256 protocolFeePercentage, uint256 totalPool, uint256 vrfRequestId, bool completed, address winner, uint256 createdAt, uint256 completedAt))",
-  "function getTicketCount(uint256 roundId, address player) view returns (uint256)"
+  "function getRound(uint256) view returns (tuple(uint256 roundId,uint8 state,address[] players,uint256 ticketPrice,uint256 maxPlayers,uint256 protocolFeePercentage,uint256 totalPool,uint256 vrfRequestId,bool completed,address winner,uint256 createdAt,uint256 completedAt))",
+  "function getTicketCount(uint256,address) view returns (uint256)"
 ];
-
 const USDT_ABI = [
-  "function approve(address spender, uint256 amount) external returns (bool)",
-  "function allowance(address owner, address spender) view returns (uint256)",
-  "function balanceOf(address account) view returns (uint256)",
+  "function approve(address,uint256) external returns (bool)",
+  "function balanceOf(address) view returns (uint256)",
   "function decimals() view returns (uint8)",
-  "function mint(address to, uint256 amount) external"
+  "function mint(address,uint256) external"
 ];
 
-const STATE_NAMES = ['OPEN','READY','CALCULATING','FROZEN','COMPLETED'];
+let provider,signer,userAddress,raffleContract,usdtContract;
 
-// ─── STATE ─────────────────────────────────────────────────────
-let provider, signer, userAddress;
-let raffleContract, usdtContract;
-const usdtDecimals = 6;
-
-// ─── LOG ───────────────────────────────────────────────────────
-function log(msg, type='info') {
-  const el = document.getElementById('log');
-  const line = document.createElement('div');
-  line.className = `log-line log-${type}`;
-  line.textContent = `[${new Date().toLocaleTimeString()}] ${msg}`;
-  el.prepend(line);
+function log(msg,type='info'){
+  const el=document.getElementById('log'),d=document.createElement('div');
+  d.className='log-line log-'+type;
+  d.textContent='['+new Date().toLocaleTimeString()+'] '+msg;
+  el.prepend(d);
 }
-function logTx(hash) {
-  const el = document.getElementById('log');
-  const line = document.createElement('div');
-  line.className = 'log-line log-tx';
-  line.innerHTML = `[${new Date().toLocaleTimeString()}] tx: <a href="https://sepolia.basescan.org/tx/${hash}" target="_blank">${hash.slice(0,10)}…</a>`;
-  el.prepend(line);
+function logTx(hash){
+  const el=document.getElementById('log'),d=document.createElement('div');
+  d.className='log-line log-tx';
+  d.innerHTML='['+new Date().toLocaleTimeString()+'] tx: <a href="https://sepolia.basescan.org/tx/'+hash+'" target="_blank" style="color:var(--rose)">'+hash.slice(0,10)+'...</a>';
+  el.prepend(d);
 }
 
-// ─── WALLET ────────────────────────────────────────────────────
-async function connectWallet() {
-  if (!window.ethereum) { log('MetaMask not found', 'err'); return; }
-  try {
-    await window.ethereum.request({ method: 'eth_requestAccounts' });
-    const chainId = await window.ethereum.request({ method: 'eth_chainId' });
-    if (chainId !== BASE_SEPOLIA_CHAIN_ID) {
-      log('Switching to Base Sepolia…', 'info');
-      try {
-        await window.ethereum.request({
-          method: 'wallet_switchEthereumChain',
-          params: [{ chainId: BASE_SEPOLIA_CHAIN_ID }]
-        });
-      } catch(e) {
-        if (e.code === 4902) {
-          await window.ethereum.request({
-            method: 'wallet_addEthereumChain',
-            params: [{
-              chainId: BASE_SEPOLIA_CHAIN_ID,
-              chainName: 'Base Sepolia',
-              nativeCurrency: { name: 'ETH', symbol: 'ETH', decimals: 18 },
-              rpcUrls: ['https://sepolia.base.org'],
-              blockExplorerUrls: ['https://sepolia.basescan.org']
-            }]
-          });
-        } else { log(e.message, 'err'); return; }
-      }
+function fireSparkles(){
+  const colors=['#7ee8e8','#d4b8f0','#ffb3cc','#ffd090','#a8f0c8','#ff85a8'];
+  for(let i=0;i<40;i++){
+    const p=document.createElement('div');p.className='sparkle';
+    const angle=Math.random()*Math.PI*2,dist=60+Math.random()*220;
+    p.style.cssText=[
+      'left:'+Math.random()*100+'vw','top:'+Math.random()*50+'vh',
+      'background:'+colors[Math.floor(Math.random()*colors.length)],
+      '--dx:'+(Math.cos(angle)*dist)+'px','--dy:'+(Math.sin(angle)*dist)+'px',
+      '--dur:'+(1.2+Math.random()*.8)+'s','animation-delay:'+Math.random()*.4+'s'
+    ].join(';');
+    document.body.appendChild(p);setTimeout(()=>p.remove(),2500);
+  }
+}
+
+async function connectWallet(){
+  if(!window.ethereum){log('MetaMask not found','err');return;}
+  try{
+    await window.ethereum.request({method:'eth_requestAccounts'});
+    const cid=await window.ethereum.request({method:'eth_chainId'});
+    if(cid!==BASE_SEP_CHAIN_ID){
+      log('Switching to Base Sepolia...','info');
+      try{await window.ethereum.request({method:'wallet_switchEthereumChain',params:[{chainId:BASE_SEP_CHAIN_ID}]});}
+      catch(e){if(e.code===4902){await window.ethereum.request({method:'wallet_addEthereumChain',params:[{chainId:BASE_SEP_CHAIN_ID,chainName:'Base Sepolia',nativeCurrency:{name:'ETH',symbol:'ETH',decimals:18},rpcUrls:['https://sepolia.base.org'],blockExplorerUrls:['https://sepolia.basescan.org']}]});}else{log(e.message,'err');return;}}
     }
-    provider = new ethers.BrowserProvider(window.ethereum);
-    signer   = await provider.getSigner();
-    userAddress = await signer.getAddress();
-    raffleContract = new ethers.Contract(CONTRACT_ADDR, RAFFLE_ABI, signer);
-    usdtContract   = new ethers.Contract(USDT_ADDR, USDT_ABI, signer);
-    const btn = document.getElementById('wallet-btn');
-    btn.textContent = userAddress.slice(0,6) + '…' + userAddress.slice(-4);
+    provider=new ethers.BrowserProvider(window.ethereum);
+    signer=await provider.getSigner();
+    userAddress=await signer.getAddress();
+    raffleContract=new ethers.Contract(CONTRACT_ADDR,RAFFLE_ABI,signer);
+    usdtContract=new ethers.Contract(USDT_ADDR,USDT_ABI,signer);
+    const btn=document.getElementById('wallet-btn');
+    btn.textContent=userAddress.slice(0,6)+'...'+userAddress.slice(-4);
     btn.classList.add('connected');
-    document.getElementById('balance-bar').style.display = 'flex';
-    log(`Connected: ${userAddress}`, 'ok');
-    refreshBalance();
-  } catch(e) { log(e.message || 'Connect failed', 'err'); }
+    document.getElementById('logout-btn').classList.add('visible');
+    document.getElementById('balance-bar').style.display='flex';
+    log('Connected: '+userAddress,'ok');refreshBalance();
+  }catch(e){log(e.message||'Connect failed','err');}
 }
 
-async function refreshBalance() {
-  if (!usdtContract || !userAddress) return;
-  try {
-    const bal = await usdtContract.balanceOf(userAddress);
-    document.getElementById('usdt-balance').textContent =
-      ethers.formatUnits(bal, usdtDecimals) + ' USDT';
-  } catch(e) {}
+function doLogout(){
+  provider=signer=userAddress=raffleContract=usdtContract=null;
+  const btn=document.getElementById('wallet-btn');
+  btn.textContent='Connect Wallet';btn.classList.remove('connected');
+  document.getElementById('logout-btn').classList.remove('visible');
+  document.getElementById('balance-bar').style.display='none';
+  document.getElementById('usdt-balance').textContent='---';
+  document.getElementById('rounds-container').innerHTML='<div class="empty-state"><div class="empty-ico">&#10024;</div><p>Connect wallet and click Refresh</p></div>';
+  log('Disconnected','info');
 }
 
-function requireConnected() {
-  if (!signer) { log('Connect wallet first', 'err'); return false; }
-  return true;
+async function refreshBalance(){
+  if(!usdtContract||!userAddress)return;
+  try{const b=await usdtContract.balanceOf(userAddress);document.getElementById('usdt-balance').textContent=ethers.formatUnits(b,USDT_DECIMALS)+' USDT';}catch(e){}
 }
 
-// ─── TABS ──────────────────────────────────────────────────────
-function showTab(name) {
-  document.querySelectorAll('.tab').forEach((t,i) => {
-    t.classList.toggle('active', ['rounds','enter','admin'][i] === name);
-  });
-  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
-  document.getElementById(`panel-${name}`).classList.add('active');
+function requireConnected(){if(!signer){log('Connect wallet first','err');return false;}return true;}
+
+function showTab(name){
+  const ns=['rounds','history','enter','admin'];
+  document.querySelectorAll('.tab').forEach((t,i)=>t.classList.toggle('active',ns[i]===name));
+  document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
+  document.getElementById('panel-'+name).classList.add('active');
 }
 
-// ─── ROUNDS ────────────────────────────────────────────────────
-async function loadRounds() {
-  if (!requireConnected()) return;
-  log('Loading active rounds…', 'info');
-  try {
-    const ids = await raffleContract.getActiveRounds();
-    const container = document.getElementById('rounds-container');
-    if (ids.length === 0) {
-      container.innerHTML = '<div class="empty">No active rounds</div>';
-      log('No active rounds found', 'info');
-      return;
+async function loadRounds(){
+  if(!requireConnected())return;log('Loading active rounds...','info');
+  try{
+    const ids=await raffleContract.getActiveRounds();
+    const c=document.getElementById('rounds-container');
+    if(ids.length===0){c.innerHTML='<div class="empty-state"><div class="empty-ico">&#127800;</div><p>No active rounds right now</p></div>';log('No active rounds','info');return;}
+    c.innerHTML='<div class="round-grid" id="round-grid"></div>';
+    const g=document.getElementById('round-grid');
+    for(const id of ids){const r=await raffleContract.getRound(id);g.innerHTML+=buildRoundCard(r);}
+    log('Loaded '+ids.length+' round(s)','ok');
+  }catch(e){log(e.reason||e.message,'err');}
+}
+
+function buildRoundCard(r){
+  const id=Number(r.roundId),sn=STATE_NAMES[r.state]||'?';
+  const pl=r.players.length,max=Number(r.maxPlayers);
+  const price=ethers.formatUnits(r.ticketPrice,USDT_DECIMALS);
+  const pool=(pl*parseFloat(price)).toFixed(2),pct=max>0?Math.round(pl/max*100):0;
+  return`<div class="round-card" onclick="openRoundModal(${id})">
+    <div class="round-num">ROUND #${id}</div>
+    <div class="state-pill s-${sn}">${sn}</div>
+    <div class="r-row"><span>Ticket</span><b>${price} USDT</b></div>
+    <div class="r-row"><span>Players</span><b>${pl} / ${max}</b></div>
+    <div class="r-row"><span>Pool</span><b>${pool} USDT</b></div>
+    <div class="r-row"><span>Fee</span><b>${Number(r.protocolFeePercentage)}%</b></div>
+    <div class="pbar"><div class="pfill" style="width:${pct}%"></div></div>
+    <div class="r-actions">
+      ${sn==='OPEN'?`<button class="btn btn-primary" onclick="event.stopPropagation();quickEnter(${id})">Enter</button>`:''}
+      <button class="btn btn-ghost" onclick="event.stopPropagation();openRoundModal(${id})">Details</button>
+    </div></div>`;
+}
+
+function quickEnter(id){document.getElementById('enter-roundId').value=id;showTab('enter');}
+
+function buildModalBody(r){
+  const sn=STATE_NAMES[r.state]||'?',pl=r.players.length,max=Number(r.maxPlayers);
+  const price=ethers.formatUnits(r.ticketPrice,USDT_DECIMALS);
+  const rawPool=r.completed?ethers.formatUnits(r.totalPool,USDT_DECIMALS):(pl*parseFloat(price)).toFixed(2);
+  const ticketMap={};for(const a of r.players)ticketMap[a]=(ticketMap[a]||0)+1;
+  const unique=Object.entries(ticketMap);
+  const playersHtml=unique.length===0
+    ?'<p style="color:var(--muted);font-family:var(--mono);font-size:11px;padding:8px">No players yet</p>'
+    :unique.map(([a,c])=>`<div class="player-row"><span class="addr">${a.slice(0,10)}...${a.slice(-6)}</span><span class="tckt">${c} ticket${c>1?'s':''}</span></div>`).join('');
+  let wHtml='';
+  if(r.winner&&r.winner!==ethers.ZeroAddress){
+    const fee=(parseFloat(rawPool)*Number(r.protocolFeePercentage)/100).toFixed(2);
+    const prize=(parseFloat(rawPool)-parseFloat(fee)).toFixed(2);
+    wHtml=`<div class="modal-section"><div class="modal-label">Winner</div>
+      <div class="winner-box"><div class="winner-star">&#11088;</div>
+      <div><div class="waddr">${r.winner}</div><div class="wprize">Prize: ${prize} USDT</div></div></div></div>`;
+  }
+  const created=new Date(Number(r.createdAt)*1000).toLocaleString();
+  const completed=Number(r.completedAt)>0?new Date(Number(r.completedAt)*1000).toLocaleString():'---';
+  return`<div class="modal-section"><div class="modal-label">Status</div><div class="state-pill s-${sn}">${sn}</div></div>
+    <div class="modal-section"><div class="modal-label">Details</div>
+      <div class="player-row"><span class="addr">Ticket price</span><span class="tckt">${price} USDT</span></div>
+      <div class="player-row" style="margin-top:4px"><span class="addr">Players</span><span class="tckt">${pl} / ${max}</span></div>
+      <div class="player-row" style="margin-top:4px"><span class="addr">Protocol fee</span><span class="tckt">${Number(r.protocolFeePercentage)}%</span></div>
+      <div class="player-row" style="margin-top:4px"><span class="addr">Pool</span><span class="tckt">${rawPool} USDT</span></div>
+      <div class="player-row" style="margin-top:4px"><span class="addr">Created</span><span class="tckt">${created}</span></div>
+      ${Number(r.completedAt)>0?`<div class="player-row" style="margin-top:4px"><span class="addr">Completed</span><span class="tckt">${completed}</span></div>`:''}</div>
+    ${wHtml}
+    <div class="modal-section"><div class="modal-label">Players (${unique.length} unique)</div>
+      <div class="player-list" style="margin-top:8px">${playersHtml}</div></div>`;
+}
+
+async function openRoundModal(id){
+  if(!requireConnected())return;
+  document.getElementById('modal-title').textContent='Round #'+id;
+  document.getElementById('modal-body').innerHTML='<p style="color:var(--muted);font-family:var(--mono);font-size:12px">Loading...</p>';
+  document.getElementById('modal-bg').classList.add('open');
+  try{const r=await raffleContract.getRound(id);document.getElementById('modal-body').innerHTML=buildModalBody(r);}
+  catch(e){document.getElementById('modal-body').innerHTML='<p style="color:#e05080;font-family:var(--mono);font-size:12px">'+(e.reason||e.message)+'</p>';}
+}
+function closeModal(e){if(e.target===document.getElementById('modal-bg'))document.getElementById('modal-bg').classList.remove('open');}
+function closeModalDirect(){document.getElementById('modal-bg').classList.remove('open');}
+
+async function loadHistoryRound(){
+  if(!requireConnected())return;
+  const id=document.getElementById('hist-roundId').value;
+  if(id===''){log('Enter a round ID','err');return;}
+  try{
+    const r=await raffleContract.getRound(id);
+    const sn=STATE_NAMES[r.state]||'?',pl=r.players.length,max=Number(r.maxPlayers);
+    const price=ethers.formatUnits(r.ticketPrice,USDT_DECIMALS);
+    const rawPool=r.completed?ethers.formatUnits(r.totalPool,USDT_DECIMALS):(pl*parseFloat(price)).toFixed(2);
+    const pct=max>0?Math.round(pl/max*100):0;
+    const ticketMap={};for(const a of r.players)ticketMap[a]=(ticketMap[a]||0)+1;
+    const unique=Object.entries(ticketMap);
+    let wHtml='';
+    if(r.winner&&r.winner!==ethers.ZeroAddress){
+      const fee=(parseFloat(rawPool)*Number(r.protocolFeePercentage)/100).toFixed(2);
+      const prize=(parseFloat(rawPool)-parseFloat(fee)).toFixed(2);
+      wHtml=`<div class="winner-box" style="margin-top:14px"><div class="winner-star">&#11088;</div><div><div class="waddr">${r.winner}</div><div class="wprize">Won ${prize} USDT</div></div></div>`;
     }
-    container.innerHTML = '<div class="round-grid" id="round-grid"></div>';
-    const grid = document.getElementById('round-grid');
-    for (const id of ids) {
-      const r = await raffleContract.getRound(id);
-      grid.innerHTML += buildRoundCard(r);
-    }
-    log(`Loaded ${ids.length} round(s)`, 'ok');
-  } catch(e) { log(e.reason || e.message, 'err'); }
+    const playersHtml=unique.length===0
+      ?'<p style="color:var(--muted);font-family:var(--mono);font-size:11px;padding:8px 0">No players</p>'
+      :unique.map(([a,c])=>`<div class="player-row"><span class="addr">${a.slice(0,10)}...${a.slice(-6)}</span><span class="tckt">${c}x</span></div>`).join('');
+    document.getElementById('hist-result').innerHTML=`
+      <div class="card" style="margin-bottom:0">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
+          <div style="font-size:18px;font-weight:800;background:linear-gradient(120deg,var(--teal),var(--lav),var(--rose));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text">Round #${Number(r.roundId)}</div>
+          <div class="state-pill s-${sn}">${sn}</div></div>
+        <div class="r-row"><span>Ticket</span><b>${price} USDT</b></div>
+        <div class="r-row"><span>Players</span><b>${pl} / ${max}</b></div>
+        <div class="r-row"><span>Pool</span><b>${rawPool} USDT</b></div>
+        <div class="r-row"><span>Fee</span><b>${Number(r.protocolFeePercentage)}%</b></div>
+        <div class="pbar" style="margin:12px 0"><div class="pfill" style="width:${pct}%"></div></div>
+        ${wHtml}
+        <div style="margin-top:16px"><div class="modal-label">Players (${unique.length} unique)</div>
+          <div class="player-list" style="margin-top:8px">${playersHtml}</div></div></div>`;
+    log('Loaded round #'+id,'ok');
+  }catch(e){
+    document.getElementById('hist-result').innerHTML='<div class="empty-state"><div class="empty-ico">&#128269;</div><p>'+(e.reason||e.message)+'</p></div>';
+    log(e.reason||e.message,'err');
+  }
 }
 
-function buildRoundCard(r) {
-  const id        = Number(r.roundId);
-  const stateName = STATE_NAMES[r.state] || '?';
-  const players   = r.players.length;
-  const max       = Number(r.maxPlayers);
-  const price     = ethers.formatUnits(r.ticketPrice, usdtDecimals);
-  const pool      = (players * parseFloat(price)).toFixed(2);
-  const pct       = max > 0 ? Math.round(players / max * 100) : 0;
-  const winner    = r.winner !== ethers.ZeroAddress
-    ? `${r.winner.slice(0,6)}…${r.winner.slice(-4)}` : '—';
-  return `
-  <div class="round-card">
-    <div class="round-id">ROUND #${id}</div>
-    <div class="round-state state-${stateName}">${stateName}</div>
-    <div class="round-stat"><span>Ticket</span><span>${price} USDT</span></div>
-    <div class="round-stat"><span>Players</span><span>${players} / ${max}</span></div>
-    <div class="round-stat"><span>Pool</span><span>${pool} USDT</span></div>
-    <div class="round-stat"><span>Fee</span><span>${Number(r.protocolFeePercentage)}%</span></div>
-    ${stateName === 'COMPLETED' ? `<div class="round-stat"><span>Winner</span><span>${winner}</span></div>` : ''}
-    <div class="progress-bar"><div class="progress-fill" style="width:${pct}%"></div></div>
-    <div class="round-actions">
-      ${stateName === 'OPEN' ? `<button class="btn btn-primary" onclick="quickEnter(${id})">Enter</button>` : ''}
-    </div>
-  </div>`;
+async function doMint(){
+  if(!requireConnected())return;
+  try{
+    const a=ethers.parseUnits('1000',USDT_DECIMALS);
+    log('Minting 1000 MockUSDT...','info');
+    const tx=await usdtContract.mint(userAddress,a);logTx(tx.hash);await tx.wait();
+    log('Minted 1000 USDT','ok');refreshBalance();
+  }catch(e){log(e.reason||e.message,'err');}
 }
 
-function quickEnter(id) {
-  document.getElementById('enter-roundId').value = id;
-  showTab('enter');
+async function doEnter(){
+  if(!requireConnected())return;
+  const roundId=document.getElementById('enter-roundId').value;
+  if(roundId===''){log('Enter a round ID','err');return;}
+  try{
+    const r=await raffleContract.getRound(roundId),price=r.ticketPrice;
+    log('Approving '+ethers.formatUnits(price,USDT_DECIMALS)+' USDT...','info');
+    const at=await usdtContract.approve(CONTRACT_ADDR,price);logTx(at.hash);await at.wait();
+    log('Approved. Entering round...','info');
+    const et=await raffleContract.enter(roundId);logTx(et.hash);await et.wait();
+    log('Entered round #'+roundId,'ok');refreshBalance();
+  }catch(e){log(e.reason||e.message,'err');}
 }
 
-// ─── MINT ──────────────────────────────────────────────────────
-async function doMint() {
-  if (!requireConnected()) return;
-  try {
-    const amount = ethers.parseUnits('1000', usdtDecimals);
-    log('Minting 1000 MockUSDT…', 'info');
-    const tx = await usdtContract.mint(userAddress, amount);
-    logTx(tx.hash);
-    await tx.wait();
-    log('Minted 1000 USDT to your wallet', 'ok');
-    refreshBalance();
-  } catch(e) { log(e.reason || e.message, 'err'); }
+async function doCreateRound(){
+  if(!requireConnected())return;
+  const price=document.getElementById('cr-price').value,max=document.getElementById('cr-max').value,fee=document.getElementById('cr-fee').value;
+  if(!price||!max||fee===''){log('Fill all fields','err');return;}
+  try{
+    const pb=ethers.parseUnits(price,USDT_DECIMALS);
+    log('Creating round: '+price+' USDT x '+max+' players, '+fee+'% fee...','info');
+    const tx=await raffleContract.createRound(pb,max,fee);logTx(tx.hash);
+    const rc=await tx.wait();
+    const iface=new ethers.Interface(RAFFLE_ABI);
+    for(const el of rc.logs){try{const p=iface.parseLog(el);if(p&&p.name==='RoundCreated')log('Round #'+p.args.roundId+' created','ok');}catch{}}
+  }catch(e){log(e.reason||e.message,'err');}
 }
 
-// ─── ENTER ─────────────────────────────────────────────────────
-async function doEnter() {
-  if (!requireConnected()) return;
-  const roundId = document.getElementById('enter-roundId').value;
-  if (roundId === '') { log('Enter a round ID', 'err'); return; }
-  try {
-    const r     = await raffleContract.getRound(roundId);
-    const price = r.ticketPrice;
-    log(`Approving ${ethers.formatUnits(price, usdtDecimals)} USDT…`, 'info');
-    const approveTx = await usdtContract.approve(CONTRACT_ADDR, price);
-    logTx(approveTx.hash);
-    await approveTx.wait();
-    log('Approved. Entering round…', 'info');
-    const enterTx = await raffleContract.enter(roundId);
-    logTx(enterTx.hash);
-    await enterTx.wait();
-    log(`Entered round #${roundId}`, 'ok');
-    refreshBalance();
-  } catch(e) { log(e.reason || e.message, 'err'); }
+async function doDrawWinner(){
+  if(!requireConnected())return;
+  const id=document.getElementById('adm-roundId').value;if(id===''){log('Enter round ID','err');return;}
+  try{log('Requesting VRF for round #'+id+'...','info');const tx=await raffleContract.drawWinner(id);logTx(tx.hash);await tx.wait();log('VRF request sent -- callback usually < 1 min','ok');}catch(e){log(e.reason||e.message,'err');}
 }
 
-// ─── ADMIN ─────────────────────────────────────────────────────
-async function doCreateRound() {
-  if (!requireConnected()) return;
-  const price = document.getElementById('cr-price').value;
-  const max   = document.getElementById('cr-max').value;
-  const fee   = document.getElementById('cr-fee').value;
-  if (!price || !max || fee === '') { log('Fill all fields', 'err'); return; }
-  try {
-    const priceBN = ethers.parseUnits(price, usdtDecimals);
-    log(`Creating round: ${price} USDT × ${max} players, ${fee}% fee…`, 'info');
-    const tx = await raffleContract.createRound(priceBN, max, fee);
-    logTx(tx.hash);
-    const receipt = await tx.wait();
-    const iface = new ethers.Interface(RAFFLE_ABI);
-    for (const evlog of receipt.logs) {
-      try {
-        const parsed = iface.parseLog(evlog);
-        if (parsed && parsed.name === 'RoundCreated') {
-          log(`Round #${parsed.args.roundId} created ✓`, 'ok');
-        }
-      } catch {}
-    }
-  } catch(e) { log(e.reason || e.message, 'err'); }
+async function doFreeze(){
+  if(!requireConnected())return;
+  const id=document.getElementById('adm-roundId').value;if(id===''){log('Enter round ID','err');return;}
+  try{log('Freezing round #'+id+'...','info');const tx=await raffleContract.freezeRound(id);logTx(tx.hash);await tx.wait();log('Round #'+id+' frozen','ok');}catch(e){log(e.reason||e.message,'err');}
 }
 
-async function doDrawWinner() {
-  if (!requireConnected()) return;
-  const roundId = document.getElementById('adm-roundId').value;
-  if (roundId === '') { log('Enter a round ID', 'err'); return; }
-  try {
-    log(`Requesting VRF for round #${roundId}…`, 'info');
-    const tx = await raffleContract.drawWinner(roundId);
-    logTx(tx.hash);
-    await tx.wait();
-    log('VRF request sent — waiting for Chainlink callback (usually <1 min)', 'ok');
-  } catch(e) { log(e.reason || e.message, 'err'); }
+async function doManualDraw(){
+  if(!requireConnected())return;
+  const id=document.getElementById('adm-roundId').value,idx=document.getElementById('adm-winnerIdx').value;
+  if(id===''||idx===''){log('Fill both fields','err');return;}
+  try{log('Manual pick: round #'+id+' index '+idx+'...','info');const tx=await raffleContract.manualDrawWinner(id,idx);logTx(tx.hash);await tx.wait();log('Winner picked for round #'+id,'ok');fireSparkles();}catch(e){log(e.reason||e.message,'err');}
 }
 
-async function doFreeze() {
-  if (!requireConnected()) return;
-  const roundId = document.getElementById('adm-roundId').value;
-  if (roundId === '') { log('Enter a round ID', 'err'); return; }
-  try {
-    log(`Freezing round #${roundId}…`, 'info');
-    const tx = await raffleContract.freezeRound(roundId);
-    logTx(tx.hash);
-    await tx.wait();
-    log(`Round #${roundId} frozen`, 'ok');
-  } catch(e) { log(e.reason || e.message, 'err'); }
+async function doAdminRefund(){
+  if(!requireConnected())return;
+  const id=document.getElementById('adm-refund-roundId').value,pl=document.getElementById('adm-refund-player').value.trim();
+  if(id===''){log('Enter round ID','err');return;}
+  try{
+    if(pl===''||pl==='0x'){log('Refunding ALL in round #'+id+'...','info');const tx=await raffleContract.refundAll(id);logTx(tx.hash);await tx.wait();log('All refunded','ok');}
+    else{log('Refunding '+pl+'...','info');const tx=await raffleContract.refundPlayer(id,pl);logTx(tx.hash);await tx.wait();log('Refunded '+pl,'ok');}
+  }catch(e){log(e.reason||e.message,'err');}
 }
 
-async function doManualDraw() {
-  if (!requireConnected()) return;
-  const roundId = document.getElementById('adm-roundId').value;
-  const idx     = document.getElementById('adm-winnerIdx').value;
-  if (roundId === '' || idx === '') { log('Fill round ID and winner index', 'err'); return; }
-  try {
-    log(`Manual pick: round #${roundId} index ${idx}…`, 'info');
-    const tx = await raffleContract.manualDrawWinner(roundId, idx);
-    logTx(tx.hash);
-    await tx.wait();
-    log(`Winner picked for round #${roundId}`, 'ok');
-  } catch(e) { log(e.reason || e.message, 'err'); }
+async function loadFees(){
+  if(!requireConnected())return;
+  try{const f=await raffleContract.unclaimedFees();document.getElementById('fees-display').textContent=ethers.formatUnits(f,USDT_DECIMALS)+' USDT';}catch(e){log(e.reason||e.message,'err');}
 }
 
-async function doAdminRefund() {
-  if (!requireConnected()) return;
-  const roundId = document.getElementById('adm-refund-roundId').value;
-  const player  = document.getElementById('adm-refund-player').value.trim();
-  if (roundId === '') { log('Enter a round ID', 'err'); return; }
-  try {
-    if (player === '' || player === '0x') {
-      log(`Refunding ALL in round #${roundId}…`, 'info');
-      const tx = await raffleContract.refundAll(roundId);
-      logTx(tx.hash);
-      await tx.wait();
-      log(`All refunded in round #${roundId}`, 'ok');
-    } else {
-      log(`Refunding ${player}…`, 'info');
-      const tx = await raffleContract.refundPlayer(roundId, player);
-      logTx(tx.hash);
-      await tx.wait();
-      log(`Refunded ${player}`, 'ok');
-    }
-  } catch(e) { log(e.reason || e.message, 'err'); }
-}
-
-async function loadFees() {
-  if (!requireConnected()) return;
-  try {
-    const fees = await raffleContract.unclaimedFees();
-    document.getElementById('fees-display').textContent =
-      ethers.formatUnits(fees, usdtDecimals) + ' USDT';
-  } catch(e) { log(e.reason || e.message, 'err'); }
-}
-
-async function doWithdrawFees() {
-  if (!requireConnected()) return;
-  try {
-    log('Withdrawing fees…', 'info');
-    const tx = await raffleContract.withdrawFees();
-    logTx(tx.hash);
-    await tx.wait();
-    log('Fees withdrawn', 'ok');
-    loadFees();
-    refreshBalance();
-  } catch(e) { log(e.reason || e.message, 'err'); }
+async function doWithdrawFees(){
+  if(!requireConnected())return;
+  try{log('Withdrawing fees...','info');const tx=await raffleContract.withdrawFees();logTx(tx.hash);await tx.wait();log('Fees withdrawn','ok');loadFees();refreshBalance();}catch(e){log(e.reason||e.message,'err');}
 }
 </script>
 </body>
